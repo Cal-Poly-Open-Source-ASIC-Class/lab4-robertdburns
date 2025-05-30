@@ -5,6 +5,7 @@ from cocotb.triggers import (
     Timer, ReadOnly
 )
 import random
+from cocotb.result import TestFailure
 
 DATA_WIDTH = 8
 DEPTH = 8
