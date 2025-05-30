@@ -33,7 +33,8 @@ async def writer(dut, test_data):
         dut.w_en.value = 1
         await RisingEdge(dut.wclk)
         dut.w_en.value = 0
-        await Timer(random.randint(5, 20), units="ns")
+        # await Timer(random.randint(10, 20), units="ns")
+        await RisingEdge(dut.wclk)
         
 
 ############################# READ VALUES #############################
