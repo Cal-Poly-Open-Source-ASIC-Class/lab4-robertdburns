@@ -38,17 +38,30 @@ async def writer(dut, test_data):
 ############################# READ VALUES #############################
 async def reader(dut, num_items, expected_data):
     read_data = []
-    await Timer(100, units="ns")
+    await Timer(100, units="ns")  # Delay to allow writes to get started
 
     for _ in range(num_items):
         while dut.empty.value:
             await RisingEdge(dut.rclk)
+
+        # Assert read enable
         dut.r_en.value = 1
         await RisingEdge(dut.rclk)
         dut.r_en.value = 0
+
+        # Wait one more cycle to allow data_out to update
+        await RisingEdge(dut.rclk)
         await ReadOnly()
-        read_val = dut.data_out.value.integer
+
+        # Check if data_out is valid
+        raw_val = dut.data_out.value
+        if not raw_val.is_resolvable:
+            raise TestFailure(f"data_out is unresolvable (x/z): {raw_val}")
+
+        read_val = raw_val.integer
         read_data.append(read_val)
+
+        # Add randomized delay to simulate realistic async read behavior
         await Timer(random.randint(5, 20), units="ns")
 
     assert read_data == expected_data, f"Mismatch! Expected {expected_data}, got {read_data}"
